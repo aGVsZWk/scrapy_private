@@ -8,7 +8,7 @@ class Spider():
 
     start_url = "http://www.baidu.com"
 
-    def start_request(self):
+    def start_requests(self):
         return Request(self.start_url)
 
     def parse(self,response):
