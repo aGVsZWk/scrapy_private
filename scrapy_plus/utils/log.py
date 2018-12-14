@@ -2,12 +2,7 @@
 import sys
 import logging
 
-# 默认的配置
-DEFAULT_LOG_LEVEL = logging.INFO    # 默认等级
-DEFAULT_LOG_FMT = '%(asctime)s %(filename)s [line:%(lineno)d] %(levelname)s: %(message)s'   # 默认日志格式
-DEFUALT_LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'  # 默认时间格式
-DEFAULT_LOG_FILENAME = 'log.log'    # 默认日志文件名称
-
+from scrapy_plus.conf import settings
 
 class Logger(object):
 
@@ -15,14 +10,14 @@ class Logger(object):
         # 1. 获取一个logger对象
         self._logger = logging.getLogger()
         # 2. 设置format对象
-        self.formatter = logging.Formatter(fmt=DEFAULT_LOG_FMT,datefmt=DEFUALT_LOG_DATEFMT)
+        self.formatter = logging.Formatter(fmt=settings.DEFAULT_LOG_FMT,datefmt=settings.DEFUALT_LOG_DATEFMT)
         # 3. 设置日志输出
         # 3.1 设置文件日志模式
-        self._logger.addHandler(self._get_file_handler(DEFAULT_LOG_FILENAME))
+        self._logger.addHandler(self._get_file_handler(settings.DEFAULT_LOG_FILENAME))
         # 3.2 设置终端日志模式
         self._logger.addHandler(self._get_console_handler())
         # 4. 设置日志等级
-        self._logger.setLevel(DEFAULT_LOG_LEVEL)
+        self._logger.setLevel(settings.DEFAULT_LOG_LEVEL)
 
     def _get_file_handler(self, filename):
         '''返回一个文件日志handler'''
