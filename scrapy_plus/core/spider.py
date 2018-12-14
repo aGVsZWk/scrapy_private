@@ -6,10 +6,14 @@ from scrapy_plus.http.request import Request
 from scrapy_plus.item import Item
 class Spider():
 
-    start_url = "http://www.baidu.com"
+    start_urls = []
 
     def start_requests(self):
-        return Request(self.start_url)
+        request_list = []
+        print(self.start_urls)
+        for start_url in self.start_urls:
+            request_list.append(Request(start_url))
+        return request_list
 
     def parse(self,response):
         return Item(response.url)

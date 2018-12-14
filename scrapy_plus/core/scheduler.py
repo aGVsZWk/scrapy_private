@@ -27,7 +27,10 @@ class Scheduler(object):
         从待爬取队列中获取一个请求对象
         :return:
         '''
-        return self.queue.get()
+        try:
+            return self.queue.get(False)
+        except:
+            return
 
     def _filter_request(self,request):
         '''
