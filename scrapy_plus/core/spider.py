@@ -9,12 +9,9 @@ class Spider():
     start_urls = []
 
     def start_requests(self):
-        request_list = []
-        print(self.start_urls)
         for start_url in self.start_urls:
-            request_list.append(Request(start_url))
-        return request_list
+            yield Request(start_url)
 
     def parse(self,response):
-        return Item(response.url)
+        yield Item(response.url)
 

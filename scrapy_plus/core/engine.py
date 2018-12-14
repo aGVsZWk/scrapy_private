@@ -65,25 +65,27 @@ class Engine(object):
         response = self.downloader_mid.process_response(response)
 
         # 5.调用spider的parse方法解析响应,获得返回的结果
-        result = self.spider.parse(response)
+        results = self.spider.parse(response)
 
-        # 6.判断结果是何种类型的数据
-        if isinstance(result, Request):
-            # 7.如果结果为请求对象,调用调度器模块的put_request方法将请求放入调度器的待爬取队列
+        for result in results:
 
-            # ----4.调用爬虫中间件的process_request方法获取起始的请求
-            result = self.spider_mid.process_request(result)
+            # 6.判断结果是何种类型的数据
+            if isinstance(result, Request):
+                # 7.如果结果为请求对象,调用调度器模块的put_request方法将请求放入调度器的待爬取队列
 
-            self.scheduler.put_request(result)
-        elif isinstance(result, Item):
-            # 8.如果结果为item对象,调用管道的process_item方法处理item数据
+                # ----4.调用爬虫中间件的process_request方法获取起始的请求
+                result = self.spider_mid.process_request(result)
 
-            # ----5.调用爬虫中间件的process_item方法获取起始的请求
-            result = self.spider_mid.process_item(result)
+                self.scheduler.put_request(result)
+            elif isinstance(result, Item):
+                # 8.如果结果为item对象,调用管道的process_item方法处理item数据
 
-            self.pipeline.process_item(result)
-        else:
-            raise Exception("不支持的解析结果{}".format(result))
+                # ----5.调用爬虫中间件的process_item方法获取起始的请求
+                result = self.spider_mid.process_item(result)
+
+                self.pipeline.process_item(result)
+            else:
+                raise Exception("不支持的解析结果{}".format(result))
 
         self.total_response_num += 1
 
