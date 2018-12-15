@@ -88,6 +88,9 @@ class Engine(object):
                 # ----4.调用爬虫中间件的process_request方法获取起始的请求
                 result = self.spider_mid.process_request(result)
 
+                # 为请求对象添加spider_name
+                result.spider_name = request.spider_name
+
                 self.scheduler.put_request(result)
 
                 # 对解析出来的请求做累加

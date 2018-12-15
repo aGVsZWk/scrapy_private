@@ -11,6 +11,6 @@ if __name__ == '__main__':
     baidu = BaiduSpider()
     douban = DoubanSpider()
     # spiders = [baidu,douban]
-    spiders = {"baidu":baidu,"douban":douban}
+    spiders = {baidu.name:baidu,douban.name:douban}
     engine = Engine(spiders)
     engine.start_engine()
