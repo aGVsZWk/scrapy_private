@@ -1,18 +1,53 @@
 from .downloader import Downloader
 from .scheduler import Scheduler
-from .spider import Spider
+
 from scrapy_plus.http.request import Request
 from scrapy_plus.item import Item
-from .pipeline import Pipeline
 
-from scrapy_plus.middlewares.spider_middleware import SpiderMiddleware
-from scrapy_plus.middlewares.downloader_middleware import DownloaderMiddleware
+
+
 from datetime import datetime
 from scrapy_plus.utils.log import logger
 
+
+from scrapy_plus.conf import settings
+import importlib
+
+def auto_import(path, spider=False):
+
+    if spider:
+        obj_list = {}
+    else:
+        obj_list = []
+    for data in path:
+        module_name = data[:data.rfind('.')]
+        cls_name = data[data.rfind('.') + 1:]
+
+        # 动态加载模块
+        mod = importlib.import_module(module_name)
+
+        # 从模块中获取类
+        cls = getattr(mod, cls_name)
+
+        # 实例化一个对象
+        obj = cls()
+        if spider:
+            obj_list[obj.name] = obj
+        else:
+            obj_list.append(obj)
+
+    return obj_list
+
+spiders = auto_import(settings.SPIDERS, spider=True)
+pipelines = auto_import(settings.PIPELINES)
+spider_mids = auto_import(settings.SPIDER_MIDDLEWARES)
+downloader_mids = auto_import(settings.DOWNLOADER_MIDDLEWARES)
+
+
+
 class Engine(object):
 
-    def __init__(self,spiders, pipelines, spider_mids, downloader_mids):
+    def __init__(self):
         self.spiders = spiders
         self.scheduler = Scheduler()
         self.downloader = Downloader()

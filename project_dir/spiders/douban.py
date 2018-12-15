@@ -48,5 +48,5 @@ class DoubanSpider(Spider):
 
         item = response.meta["item"]
         item["url"] = response.url
-        print("item",item)
+        # print("item",item)
         yield Item(item)    # 返回标题
