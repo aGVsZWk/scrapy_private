@@ -12,14 +12,14 @@ from scrapy_plus.utils.log import logger
 
 class Engine(object):
 
-    def __init__(self,spiders, pipelines):
+    def __init__(self,spiders, pipelines, spider_mids, downloader_mids):
         self.spiders = spiders
         self.scheduler = Scheduler()
         self.downloader = Downloader()
         self.pipelines = pipelines
 
-        self.spider_mid = SpiderMiddleware()
-        self.downloader_mid = DownloaderMiddleware()
+        self.spider_mids = spider_mids
+        self.downloader_mids = downloader_mids
 
         # 设置计数器
         self.total_request_num = 0
@@ -44,7 +44,8 @@ class Engine(object):
 
             for start_request in start_requests:
                 # ----1.调用爬虫中间件的process_request方法获取起始的请求
-                start_request = self.spider_mid.process_request(start_request)
+                for spider_mid in self.spider_mids:
+                    start_request = spider_mid.process_request(start_request)
 
                 # 给请求添加对应爬虫名
                 start_request.spider_name = spider_name
@@ -63,13 +64,15 @@ class Engine(object):
             return
 
         # ----2.调用下载器中间件的process_request方法处理请求
-        request = self.downloader_mid.process_request(request)
+        for downloader_mid in self.downloader_mids:
+            request = downloader_mid.process_request(request)
 
         # 4.调用downloader模块的get_response方法,获取响应
         response = self.downloader.get_response(request)
 
         # ----3.调用下载器中间件的process_response方法处理响应
-        response = self.downloader_mid.process_response(response)
+        for downloader_mid in self.downloader_mids:
+            response = downloader_mid.process_response(response)
 
         # 动态获取爬虫
         spider = self.spiders[request.spider_name]
@@ -86,7 +89,8 @@ class Engine(object):
                 # 7.如果结果为请求对象,调用调度器模块的put_request方法将请求放入调度器的待爬取队列
 
                 # ----4.调用爬虫中间件的process_request方法获取起始的请求
-                result = self.spider_mid.process_request(result)
+                for spider_mid in self.spider_mids:
+                    result = spider_mid.process_request(result)
 
                 # 为请求对象添加spider_name
                 result.spider_name = request.spider_name
@@ -101,7 +105,8 @@ class Engine(object):
                 # 8.如果结果为item对象,调用管道的process_item方法处理item数据
 
                 # ----5.调用爬虫中间件的process_item方法获取起始的请求
-                result = self.spider_mid.process_item(result)
+                for spider_mid in self.spider_mids:
+                    result = spider_mid.process_item(result)
 
                 for pipeline in self.pipelines:
 
