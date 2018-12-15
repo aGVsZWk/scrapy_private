@@ -65,6 +65,7 @@ class Engine(object):
 
         # 创建线程池
         self.pool = Pool()
+        self.is_running = True
 
     def start_engine(self):
         start = datetime.now()
@@ -120,8 +121,9 @@ class Engine(object):
 
         parse = getattr(spider, request.parse)
         # 5.调用spider的parse方法解析响应,获得返回的结果
-        results = parse(response)
 
+        results = parse(response)
+        print(">>>>>",parse)
 
         for result in results:
 
@@ -160,14 +162,23 @@ class Engine(object):
         self.total_response_num += 1
 
     def _callback(self,temp):
-        self.pool.apply_async(self._excute_request_response_item, callback=self._callback)
+        if self.is_running:
+            self.pool.apply_async(self._excute_request_response_item, callback=self._callback)
+
+    def _errorback(self,exception):
+        try:
+            raise exception
+        except Exception as e:
+            logger.exception(e)
+
+
 
     def _start_engine(self):
 
-        self.pool.apply_async(self._start_requests)
+        self.pool.apply_async(self._start_requests, error_callback=self._errorback)
 
         for i in range(settings.MAX_ASYNC_THREAD_NUMBER):
-            self.pool.apply_async(self._excute_request_response_item,callback=self._callback)
+            self.pool.apply_async(self._excute_request_response_item,callback=self._callback,error_callback=self._errorback)
 
         while True:
 
@@ -175,6 +186,10 @@ class Engine(object):
             # time.sleep(1)
             if self.total_request_num !=0:
                 if self.total_request_num == self.total_response_num + self.scheduler.repeat_request_num:
+                    self.is_running = False
                     break
+
+        self.pool.close()
+        self.pool.join()
 
 
