@@ -9,12 +9,13 @@ import re
 
 class Response(object):
 
-    def __init__(self, url, headers, body, code, request):
+    def __init__(self, url, headers, body, code, request, meta):
         self.url = url
         self.headers = headers
         self.body = body
         self.code = code
         self.request = request
+        self.meta = meta
 
     def xpath(self, rule):
         # 创建elements对象

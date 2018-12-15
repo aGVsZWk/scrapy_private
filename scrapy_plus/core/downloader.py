@@ -3,6 +3,7 @@
 """
 import requests
 from scrapy_plus.http.response import Response
+from scrapy_plus.utils.log import logger
 class Downloader(object):
 
     def get_response(self,request):
@@ -25,12 +26,15 @@ class Downloader(object):
         else:
             raise Exception('框架不支持的请求类型 {}'.format(request.method))
 
+        logger.info("下载器成功获取<{}>对应的响应".format(request.url))
+
         # 构建响应对象
         res = Response(
             url=response.url,
             body=response.content,
             headers=response.headers,
             code=response.status_code,
-            request=request
+            request=request,
+            meta=request.meta
         )
         return res

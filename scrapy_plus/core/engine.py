@@ -4,6 +4,7 @@ from .spider import Spider
 from scrapy_plus.http.request import Request
 from scrapy_plus.item import Item
 from .pipeline import Pipeline
+import time
 
 from scrapy_plus.middlewares.spider_middleware import SpiderMiddleware
 from scrapy_plus.middlewares.downloader_middleware import DownloaderMiddleware
@@ -64,8 +65,10 @@ class Engine(object):
         # ----3.调用下载器中间件的process_response方法处理响应
         response = self.downloader_mid.process_response(response)
 
+        parse = getattr(self.spider, request.parse)
         # 5.调用spider的parse方法解析响应,获得返回的结果
-        results = self.spider.parse(response)
+        results = parse(response)
+
 
         for result in results:
 
@@ -77,6 +80,11 @@ class Engine(object):
                 result = self.spider_mid.process_request(result)
 
                 self.scheduler.put_request(result)
+
+                # 对解析出来的请求做累加
+
+                self.total_request_num += 1
+
             elif isinstance(result, Item):
                 # 8.如果结果为item对象,调用管道的process_item方法处理item数据
 
@@ -84,6 +92,8 @@ class Engine(object):
                 result = self.spider_mid.process_item(result)
 
                 self.pipeline.process_item(result)
+
+
             else:
                 raise Exception("不支持的解析结果{}".format(result))
 
@@ -99,5 +109,20 @@ class Engine(object):
 
             if self.total_request_num == self.total_response_num:
                 break
+            # break
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

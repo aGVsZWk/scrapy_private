@@ -4,11 +4,16 @@
  """
 class Request(object):
 
-    def __init__(self, url, headers={}, cookies={}, params={}, data={}, method="GET"):
+    def __init__(self, url, headers={}, cookies={}, params={}, data={}, method="GET",parse="parse", meta={}):
         self.url = url
         self.headers = headers
         self.cookies = cookies
         self.params = params
         self.data = data
         self.method = method
+
+        # 设置响应的回调函数
+        self.parse = parse
+        self.meta = meta
+
 
