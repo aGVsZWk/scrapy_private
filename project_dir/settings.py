@@ -25,3 +25,4 @@ DOWNLOADER_MIDDLEWARES = [
     # 'middlewares.TestDownloaderMiddleware2'
 ]
 
+# ASYNC_TYPE = 'coroutine'

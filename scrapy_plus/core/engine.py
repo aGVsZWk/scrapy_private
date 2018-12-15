@@ -1,3 +1,16 @@
+from scrapy_plus.conf import settings
+# 协程池尽可能放所有模块之前, 里面打猴子补丁会替换掉后面阻塞的模块
+if settings.ASYNC_TYPE == "thread":
+    from multiprocessing.dummy import Pool
+elif settings.ASYNC_TYPE == "coroutine":
+    # from gevent.pool import Pool
+    # 名字不能用async, 关键字, 用了会报错
+    from scrapy_plus.async_.coroutine import Pool  # 导入协程池对象
+    pass
+else:
+    raise Exception("框架不支持的并发类型{}".format(settings.ASYNC_TYPE))
+
+
 from .downloader import Downloader
 from .scheduler import Scheduler
 
@@ -10,11 +23,9 @@ from datetime import datetime
 import time
 from scrapy_plus.utils.log import logger
 
-
-from scrapy_plus.conf import settings
 import importlib
 
-from multiprocessing.dummy import Pool
+
 
 def auto_import(path, spider=False):
 
@@ -70,6 +81,9 @@ class Engine(object):
     def start_engine(self):
         start = datetime.now()
         logger.info("框架启动的时间为:[{}]".format(start))
+        logger.info("并发类型为{}".format(settings.ASYNC_TYPE))
+        logger.info("并发数量为{}".format(settings.MAX_ASYNC_THREAD_NUMBER))
+
         self._start_engine()
         stop = datetime.now()
         logger.info("框架停止的时间为:[{}]".format(stop))
@@ -181,7 +195,7 @@ class Engine(object):
             self.pool.apply_async(self._excute_request_response_item,callback=self._callback,error_callback=self._errorback)
 
         while True:
-
+            time.sleep(0.0000000001)
             # print(self.total_request_num,self.total_response_num,self.scheduler.repeat_request_num)
             # time.sleep(1)
             if self.total_request_num !=0:
@@ -189,7 +203,7 @@ class Engine(object):
                     self.is_running = False
                     break
 
-        self.pool.close()
+        self.pool.close()  # 协程池无close方法
         self.pool.join()
 
 

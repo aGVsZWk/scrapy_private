@@ -8,3 +8,7 @@ DEFAULT_LOG_FILENAME = 'log.log'    # 默认日志文件名称
 
 # 默认并发数量
 MAX_ASYNC_THREAD_NUMBER = 5
+
+# 异步并发的方式 thread or coroutine 线程 或 协程
+# 可以在项目的settings.py中重新设置该值，自动覆盖
+ASYNC_TYPE = 'thread' # 默认为线程的方式
