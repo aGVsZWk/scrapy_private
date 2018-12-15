@@ -12,11 +12,11 @@ from scrapy_plus.utils.log import logger
 
 class Engine(object):
 
-    def __init__(self,spiders):
+    def __init__(self,spiders, pipelines):
         self.spiders = spiders
         self.scheduler = Scheduler()
         self.downloader = Downloader()
-        self.pipeline = Pipeline()
+        self.pipelines = pipelines
 
         self.spider_mid = SpiderMiddleware()
         self.downloader_mid = DownloaderMiddleware()
@@ -103,7 +103,9 @@ class Engine(object):
                 # ----5.调用爬虫中间件的process_item方法获取起始的请求
                 result = self.spider_mid.process_item(result)
 
-                self.pipeline.process_item(result)
+                for pipeline in self.pipelines:
+
+                    result = pipeline.process_item(result,spider)
 
 
             else:

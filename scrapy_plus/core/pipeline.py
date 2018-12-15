@@ -3,5 +3,5 @@
 """
 class Pipeline(object):
 
-    def process_item(self,item):
+    def process_item(self,item, spider):
         print("当前管道正在处理的数据为({})".format(item.data))
