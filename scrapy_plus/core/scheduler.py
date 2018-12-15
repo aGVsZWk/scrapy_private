@@ -9,13 +9,23 @@
 import hashlib
 
 from six.moves.queue import Queue # six模块会根据py的版本自动切换使用的队列
+from scrapy_plus.utils.queue import Queue as RedisQueue
+from scrapy_plus.utils.set import NoramlFilterContainer,RedisFilterContainer
+from scrapy_plus.conf.settings import SCHEDULER_PERSIST
+
 from scrapy_plus.utils.log import logger
 import w3lib.url
 
 class Scheduler(object):
     def __init__(self):
-        self.queue = Queue()
-        self._filter_container = set()
+
+        if SCHEDULER_PERSIST:
+            self.queue = RedisQueue()
+            self._filter_container = RedisFilterContainer()
+        else:
+            self.queue = Queue()
+            self._filter_container = NoramlFilterContainer()
+
         self.repeat_request_num = 0
 
     def put_request(self,request):
@@ -27,7 +37,7 @@ class Scheduler(object):
         fp = self._gen_fp(request)
         if not self._filter_request(fp):
             self.queue.put(request)
-            self._filter_container.add(fp)
+            self._filter_container.add_fp(fp)
         else:
             self.repeat_request_num += 1
             logger.info("重复的请求<{}>已经被过滤掉了,hash值为<{}>".format(request.url,fp))
@@ -50,7 +60,7 @@ class Scheduler(object):
         '''
 
 
-        if fp in self._filter_container:
+        if self._filter_container.exists(fp):
             return True
         else:
             return False

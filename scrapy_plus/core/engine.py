@@ -137,7 +137,7 @@ class Engine(object):
         # 5.调用spider的parse方法解析响应,获得返回的结果
 
         results = parse(response)
-        print(">>>>>",parse)
+        # print(">>>>>",parse)
 
         for result in results:
 
