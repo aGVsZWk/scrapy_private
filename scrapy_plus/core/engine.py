@@ -161,7 +161,7 @@ class Engine(object):
 
             self._excute_request_response_item()
 
-            if self.total_request_num == self.total_response_num:
+            if self.total_request_num == self.total_response_num + self.scheduler.repeat_request_num:
                 break
 
 

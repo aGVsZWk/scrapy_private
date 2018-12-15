@@ -4,7 +4,7 @@ DEFAULT_LOG_FILENAME = 'mysettings.log'    # 默认日志文件名称
 # 启用的爬虫类
 SPIDERS = [
     'spiders.baidu.BaiduSpider',
-    'spiders.douban.DoubanSpider'
+    # 'spiders.douban.DoubanSpider'
 ]
 
 # 启用的管道类
