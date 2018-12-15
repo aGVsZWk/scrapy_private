@@ -4,7 +4,6 @@ from .spider import Spider
 from scrapy_plus.http.request import Request
 from scrapy_plus.item import Item
 from .pipeline import Pipeline
-import time
 
 from scrapy_plus.middlewares.spider_middleware import SpiderMiddleware
 from scrapy_plus.middlewares.downloader_middleware import DownloaderMiddleware
@@ -13,8 +12,8 @@ from scrapy_plus.utils.log import logger
 
 class Engine(object):
 
-    def __init__(self,spider):
-        self.spider = spider
+    def __init__(self,spiders):
+        self.spiders = spiders
         self.scheduler = Scheduler()
         self.downloader = Downloader()
         self.pipeline = Pipeline()
@@ -36,18 +35,25 @@ class Engine(object):
 
 
     def _start_requests(self):
-        # 1.调用spider模块的start_request方法获取起始的请求
-        start_requests = self.spider.start_requests()
 
-        for start_request in start_requests:
-            # ----1.调用爬虫中间件的process_request方法获取起始的请求
-            start_request = self.spider_mid.process_request(start_request)
+        # 遍历爬虫列表, 分别获取每一个爬虫
+        for spider_name, spider in self.spiders.items():
 
-            # 2.调用调度器模块的put_request方法将请求放入调度器的待爬取队列
-            self.scheduler.put_request(start_request)
+            # 1.调用spider模块的start_request方法获取起始的请求
+            start_requests = spider.start_requests()
 
-            # 请求计数器加1
-            self.total_request_num += 1
+            for start_request in start_requests:
+                # ----1.调用爬虫中间件的process_request方法获取起始的请求
+                start_request = self.spider_mid.process_request(start_request)
+
+                # 给请求添加对应爬虫名
+                start_request.spider_name = spider_name
+
+                # 2.调用调度器模块的put_request方法将请求放入调度器的待爬取队列
+                self.scheduler.put_request(start_request)
+
+                # 请求计数器加1
+                self.total_request_num += 1
 
     def _excute_request_response_item(self):
 
@@ -65,7 +71,10 @@ class Engine(object):
         # ----3.调用下载器中间件的process_response方法处理响应
         response = self.downloader_mid.process_response(response)
 
-        parse = getattr(self.spider, request.parse)
+        # 动态获取爬虫
+        spider = self.spiders[request.spider_name]
+
+        parse = getattr(spider, request.parse)
         # 5.调用spider的parse方法解析响应,获得返回的结果
         results = parse(response)
 
@@ -109,20 +118,5 @@ class Engine(object):
 
             if self.total_request_num == self.total_response_num:
                 break
-            # break
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
