@@ -7,11 +7,14 @@ from scrapy_plus.item import Item
 
 
 from datetime import datetime
+import time
 from scrapy_plus.utils.log import logger
 
 
 from scrapy_plus.conf import settings
 import importlib
+
+from multiprocessing.dummy import Pool
 
 def auto_import(path, spider=False):
 
@@ -59,6 +62,9 @@ class Engine(object):
         # 设置计数器
         self.total_request_num = 0
         self.total_response_num = 0
+
+        # 创建线程池
+        self.pool = Pool()
 
     def start_engine(self):
         start = datetime.now()
@@ -153,15 +159,22 @@ class Engine(object):
 
         self.total_response_num += 1
 
+    def _callback(self,temp):
+        self.pool.apply_async(self._excute_request_response_item, callback=self._callback)
+
     def _start_engine(self):
 
-        self._start_requests()
+        self.pool.apply_async(self._start_requests)
+
+        for i in range(settings.MAX_ASYNC_THREAD_NUMBER):
+            self.pool.apply_async(self._excute_request_response_item,callback=self._callback)
 
         while True:
 
-            self._excute_request_response_item()
-
-            if self.total_request_num == self.total_response_num + self.scheduler.repeat_request_num:
-                break
+            # print(self.total_request_num,self.total_response_num,self.scheduler.repeat_request_num)
+            # time.sleep(1)
+            if self.total_request_num !=0:
+                if self.total_request_num == self.total_response_num + self.scheduler.repeat_request_num:
+                    break
 
 
