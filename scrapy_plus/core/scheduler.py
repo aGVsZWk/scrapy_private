@@ -35,6 +35,11 @@ class Scheduler(object):
         :param request:
         :return:
         '''
+        if request.filter == False:
+            self.queue.put(request)
+            logger.info("重复的请求<{}>被设置为不过滤".format(request.url))
+            return
+
         fp = self._gen_fp(request)
         if not self._filter_request(fp):
             self.queue.put(request)

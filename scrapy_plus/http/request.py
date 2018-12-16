@@ -4,7 +4,7 @@
  """
 class Request(object):
 
-    def __init__(self, url, headers={}, cookies={}, params={}, data={}, method="GET",parse="parse", meta={}):
+    def __init__(self, url, headers={}, cookies={}, params={}, data={}, method="GET",parse="parse", meta={}, filter=True):
         self.url = url
         self.headers = headers
         self.cookies = cookies
@@ -16,4 +16,4 @@ class Request(object):
         self.parse = parse
         self.meta = meta
 
-
+        self.filter = filter

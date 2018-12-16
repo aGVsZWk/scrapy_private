@@ -1,6 +1,4 @@
-from scrapy_plus.core.spider import Spider
-from scrapy_plus.http.request import Request
-from scrapy_plus.item import Item
+from scrapy_plus import Spider
 
 
 class BaiduSpider(Spider):
