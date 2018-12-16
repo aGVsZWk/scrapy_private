@@ -26,6 +26,8 @@ from scrapy_plus.utils.log import logger
 import importlib
 
 
+from scrapy_plus.conf.settings import SCHEDULER_PERSIST
+from scrapy_plus.utils.status_collector import NormalStatsCollector,ReidsStatsCollector
 
 def auto_import(path, spider=False):
 
@@ -63,7 +65,7 @@ class Engine(object):
 
     def __init__(self):
         self.spiders = spiders
-        self.scheduler = Scheduler()
+        # self.scheduler = Scheduler()
         self.downloader = Downloader()
         self.pipelines = pipelines
 
@@ -71,8 +73,16 @@ class Engine(object):
         self.downloader_mids = downloader_mids
 
         # 设置计数器
-        self.total_request_num = 0
-        self.total_response_num = 0
+        # self.total_request_num = 0
+        # self.total_response_num = 0
+        # 根据配置使用单机的状态收集器或者分布式的状态收集器
+        if SCHEDULER_PERSIST:
+            self.collector = ReidsStatsCollector()
+        else:
+            self.collector = NormalStatsCollector()
+
+        self.scheduler = Scheduler(self.collector)
+
 
         # 创建线程池
         self.pool = Pool()
@@ -88,7 +98,7 @@ class Engine(object):
         stop = datetime.now()
         logger.info("框架停止的时间为:[{}]".format(stop))
         logger.info("框架运行的时间为:[{}]".format((stop-start).total_seconds()))
-
+        self.collector.clear()    # 清除redis中所有的计数的值,但不清除指纹集合; 视情况而看
 
     def _start_requests(self):
 
@@ -110,7 +120,8 @@ class Engine(object):
                 self.scheduler.put_request(start_request)
 
                 # 请求计数器加1
-                self.total_request_num += 1
+                # self.total_request_num += 1
+                self.collector.incr(self.collector.request_nums_key)
 
     def _excute_request_response_item(self):
 
@@ -156,7 +167,9 @@ class Engine(object):
 
                 # 对解析出来的请求做累加
 
-                self.total_request_num += 1
+                # self.total_request_num += 1
+                self.collector.incr(self.collector.request_nums_key)
+
 
             elif isinstance(result, Item):
                 # 8.如果结果为item对象,调用管道的process_item方法处理item数据
@@ -173,7 +186,9 @@ class Engine(object):
             else:
                 raise Exception("不支持的解析结果{}".format(result))
 
-        self.total_response_num += 1
+        # self.total_response_num += 1
+        self.collector.incr(self.collector.response_nums_key)
+
 
     def _callback(self,temp):
         if self.is_running:
@@ -198,8 +213,8 @@ class Engine(object):
             time.sleep(0.0000000001)
             # print(self.total_request_num,self.total_response_num,self.scheduler.repeat_request_num)
             # time.sleep(1)
-            if self.total_request_num !=0:
-                if self.total_request_num == self.total_response_num + self.scheduler.repeat_request_num:
+            if self.collector.request_nums !=0:
+                if self.collector.request_nums == self.collector.response_nums + self.collector.repeat_request_nums:
                     self.is_running = False
                     break
 

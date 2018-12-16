@@ -17,7 +17,7 @@ from scrapy_plus.utils.log import logger
 import w3lib.url
 
 class Scheduler(object):
-    def __init__(self):
+    def __init__(self, collector):
 
         if SCHEDULER_PERSIST:
             self.queue = RedisQueue()
@@ -26,7 +26,8 @@ class Scheduler(object):
             self.queue = Queue()
             self._filter_container = NoramlFilterContainer()
 
-        self.repeat_request_num = 0
+        # self.repeat_request_num = 0
+        self.collector = collector
 
     def put_request(self,request):
         '''
@@ -39,7 +40,8 @@ class Scheduler(object):
             self.queue.put(request)
             self._filter_container.add_fp(fp)
         else:
-            self.repeat_request_num += 1
+            # self.repeat_request_num += 1
+            self.collector.incr(self.collector.repeat_request_nums_key)
             logger.info("重复的请求<{}>已经被过滤掉了,hash值为<{}>".format(request.url,fp))
 
     def get_request(self):
